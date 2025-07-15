@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,3 +15,14 @@ namespace appComercio
         public bool CheckBox1 { get; set; }
     }
 }
+=======
+﻿namespace appComercio
+{
+    internal class Usuario
+    {
+        public string NomeUsuario { get; set; }
+        public string SenhaUsuario { get; set; }
+        public string SetorUsuario { get; set; }
+    }
+}
+>>>>>>> Stashed changes

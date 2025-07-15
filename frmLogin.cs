@@ -1,13 +1,18 @@
 ﻿using System;
+<<<<<<< Updated upstream
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+=======
+using System.Net.Http;
+>>>>>>> Stashed changes
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace appComercio
 {
@@ -45,6 +50,7 @@ namespace appComercio
             this.Show();
         }
 
+<<<<<<< Updated upstream
         private void btnSair(object sender, EventArgs e)
         {
             Application.Exit();
@@ -67,6 +73,11 @@ namespace appComercio
                 {
                     return true;
                 }
+=======
+            using (Cadastro cadastro = new Cadastro()) // Abre formulário Cadastro modal
+            {
+                cadastro.ShowDialog();
+>>>>>>> Stashed changes
             }
             return false;
         }
@@ -88,6 +99,83 @@ namespace appComercio
             {
                 MessageBox.Show("Usuário, senha ou setor inválidos!");
             }
+        }
+
+        private void button2_Click(object sender, EventArgs e) // Botão Sair (do aplicativo)
+        {
+            // --- LIMPAR CHAVE DE API AO SAIR DO APLICATIVO ---
+            AuthManager.ClearApiKey(); // Garante que a chave de API seja limpa explicitamente
+            // --- FIM DA LIMPEZA ---
+            Application.Exit(); // Encerra o aplicativo inteiro
+        }
+
+        // button1_Click é o botão de Entrar (Login)
+        private async void button1_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtUsuario.Text) || string.IsNullOrWhiteSpace(txtSenha.Text))
+            {
+                MessageBox.Show("Por favor, preencha os campos de usuário e senha.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var dadosLogin = new
+            {
+                NomeUsuario = txtUsuario.Text.Trim(),
+                SenhaUsuario = txtSenha.Text.Trim()
+            };
+
+            string json = JsonConvert.SerializeObject(dadosLogin);
+
+            // Usa uma nova instância de HttpClient para o login, pois o AuthManager.HttpClient
+            // só será configurado APÓS o login bem-sucedido.
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:5000/"); // URL base para o endpoint de login
+
+                try
+                {
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync("Login", content); // Endpoint de login
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseJson = await response.Content.ReadAsStringAsync();
+                        dynamic result = JsonConvert.DeserializeObject(responseJson);
+
+                        if (result.api_key != null)
+                        {
+                            // --- CHAVE AQUI: Define a chave de API no AuthManager ---
+                            AuthManager.SetApiKey(result.api_key.ToString());
+
+                            MessageBox.Show($"Login realizado com sucesso! Bem-vindo, {dadosLogin.NomeUsuario}!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                            this.Hide();
+                            // Abre o formulário principal após o login.
+                            // Ele agora usará o HttpClient configurado via AuthManager.
+                            frmProdutoServiço produtoForm = new frmProdutoServiço();
+                            produtoForm.Show();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Login bem-sucedido, mas a chave de API não foi recebida da API.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    else
+                    {
+                        string erro = await response.Content.ReadAsStringAsync();
+                        MessageBox.Show("Falha no login: " + erro, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Erro ao conectar com a API: " + ex.Message + "\nVerifique se o servidor Flask está rodando em http://127.0.0.1:5000/", "Erro de Conexão", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void gbTelaLogin_Enter(object sender, EventArgs e)
+        {
+
         }
     }
 }
